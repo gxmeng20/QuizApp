@@ -11,7 +11,7 @@ const App = () => {
   const [newTag, setNewTag] = useState("");
   const [score, setScore] = useState(0);
   const [results, setResults] = useState<Result[]>([]);
-
+  const [selectedOption, setSelectedOption] = useState<number>(-1); // 当前选中的选项
   // 获取题目数据
   useEffect(() => {
     axios.get("/api/questions")
@@ -31,8 +31,9 @@ const App = () => {
   }, [selectedTag]);
 
   // 处理用户答题
-  const handleAnswer = (questionId:any, answer:any) => {
+  const handleAnswer = (questionId:any, answer:any,index:number) => {
     setUserAnswers({ ...userAnswers, [questionId]: answer });
+    setSelectedOption(index);
   };
 
   // 提交答案并计分
@@ -117,9 +118,9 @@ const App = () => {
           <ul>
             {questions[currentQuestion].options.map((option:any, index:any) => (
               <li key={index}>
-                <button onClick={() => handleAnswer(questions[currentQuestion].id, option)}>
-                  {option}
-                </button>
+                <input type="radio"checked={index === selectedOption} onChange={() => handleAnswer(questions[currentQuestion].id, option, index)}>
+                </input>
+                {option}
               </li>
             ))}
           </ul>
@@ -137,7 +138,10 @@ const App = () => {
             }
             
           </div>
-          <button onClick={() => setCurrentQuestion(currentQuestion + 1)}>
+          <button onClick={() =>{ setCurrentQuestion(currentQuestion + 1), setSelectedOption(-1);}}>
+            Next Question
+          </button>
+          <button onClick={() =>{ setCurrentQuestion(currentQuestion + 1), setSelectedOption(-1);}}>
             Next Question
           </button>
           {currentQuestion === questions.length - 1 && (
