@@ -4,14 +4,14 @@ type Question = { id: number; text: string ,options:[],correctCount:number,quest
 type Result = {isCorrect:boolean,correctAnswer:string,userAnswer:string,question:string}
 const App = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [userAnswers, setUserAnswers] = useState({});
+  const [currentQuestion, setCurrentQuestion] = useState<number>(0);
+  const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({});
   const [showResult, setShowResult] = useState(false);
   const [selectedTag, setSelectedTag] = useState("All");
   const [newTag, setNewTag] = useState("");
   const [score, setScore] = useState(0);
   const [results, setResults] = useState<Result[]>([]);
-  const [selectedOption, setSelectedOption] = useState<number>(-1); // 当前选中的选项
+
   // 获取题目数据
   useEffect(() => {
     axios.get("/api/questions")
@@ -31,9 +31,8 @@ const App = () => {
   }, [selectedTag]);
 
   // 处理用户答题
-  const handleAnswer = (questionId:any, answer:any,index:number) => {
+  const handleAnswer = (questionId:string, answer:string) => {
     setUserAnswers({ ...userAnswers, [questionId]: answer });
-    setSelectedOption(index);
   };
 
   // 提交答案并计分
@@ -111,19 +110,37 @@ const App = () => {
         </div>
       ) : (
         <div className="question">
-          <h2>{questions[currentQuestion].question}</h2>
+          <p>
+            Current: {currentQuestion +1} | Total : {questions.length}
+          </p>
+          <h2>Question : {questions[currentQuestion].question}</h2>
           <p>
             Correct: {questions[currentQuestion].correctCount} | Incorrect: {questions[currentQuestion].wrongCount}
           </p>
           <ul>
             {questions[currentQuestion].options.map((option:any, index:any) => (
               <li key={index}>
-                <input type="radio"checked={index === selectedOption} onChange={() => handleAnswer(questions[currentQuestion].id, option, index)}>
+                <input type="radio"checked={option === userAnswers[questions[currentQuestion].id]} onChange={() => handleAnswer(questions[currentQuestion].id, option, index)}>
                 </input>
                 {option}
               </li>
             ))}
           </ul>
+          <button onClick={() =>{
+            if (currentQuestion > 0)
+              setCurrentQuestion(currentQuestion - 1)
+            }}>
+            Pre Question
+          </button>
+          <button onClick={() =>{
+            if (currentQuestion < (questions.length -1 ))
+              setCurrentQuestion(currentQuestion + 1)
+          }}>
+            Next Question
+          </button>
+          {currentQuestion === questions.length - 1 && (
+            <button onClick={handleSubmit}>Submit</button>
+          )}
           <div className="add-tag">
             <input
               type="text"
@@ -131,22 +148,10 @@ const App = () => {
               onChange={(e) => setNewTag(e.target.value)}
               placeholder="Enter a new tag"
             />
-            if （questions[currentQuestion]）{
-              <button onClick={() => handleAddTag(questions[currentQuestion].id)}>
-                Add Tag
-              </button>
-            }
-            
+            <button onClick={() => handleAddTag(questions[currentQuestion].id)}>
+              Add Tag
+            </button>
           </div>
-          <button onClick={() =>{ setCurrentQuestion(currentQuestion + 1), setSelectedOption(-1);}}>
-            Next Question
-          </button>
-          <button onClick={() =>{ setCurrentQuestion(currentQuestion + 1), setSelectedOption(-1);}}>
-            Next Question
-          </button>
-          {currentQuestion === questions.length - 1 && (
-            <button onClick={handleSubmit}>Submit</button>
-          )}
         </div>
       )}
     </div>
